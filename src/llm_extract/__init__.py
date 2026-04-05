@@ -21,8 +21,8 @@ Quick start:
 """
 
 from llm_extract.extractor import extract, extract_text
-from llm_extract.models import ExtractionResult, ExtractionConfig
 from llm_extract.loader import load_document
+from llm_extract.models import ExtractionConfig, ExtractionResult
 
 __version__ = "1.0.0"
 __author__ = "Linda Oraegbunam"

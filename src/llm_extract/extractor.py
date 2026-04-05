@@ -23,7 +23,6 @@ from llm_extract.chunker import chunk_text
 from llm_extract.loader import load_document, load_text
 from llm_extract.models import DocumentChunk, ExtractionConfig, ExtractionResult
 
-
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def extract(
@@ -302,7 +301,7 @@ def _parse_response(
 
     try:
         parsed = json.loads(clean)
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         return ExtractionResult(
             data=None,
             raw_response=raw,
@@ -339,7 +338,7 @@ def _parse_response(
     try:
         model_instance = schema(**extracted_values)
         fields_found = sum(1 for v in extracted_values.values() if v is not None)
-    except (ValidationError, TypeError) as e:
+    except (ValidationError, TypeError):
         return ExtractionResult(
             data=None,
             confidence=confidence_scores,

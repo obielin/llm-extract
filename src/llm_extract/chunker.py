@@ -8,6 +8,7 @@ preserving sentence and paragraph boundaries where possible.
 from __future__ import annotations
 
 import re
+
 from llm_extract.models import DocumentChunk
 
 

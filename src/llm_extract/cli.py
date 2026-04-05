@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -46,8 +45,8 @@ def extract_cmd(
 ) -> None:
     """Extract structured data from a document file."""
     from llm_extract.extractor import extract
-    from llm_extract.models import ExtractionConfig
     from llm_extract.loader import detect_format
+    from llm_extract.models import ExtractionConfig
 
     console.print()
     fmt = detect_format(source)
@@ -182,7 +181,7 @@ def _build_quick_schema(fields_str: str) -> type[BaseModel]:
 def _display_result(result, show_sources: bool, show_raw: bool, threshold: float) -> None:
     """Display extraction result in the terminal."""
     if not result.success:
-        console.print(f"\n[red]✗ Extraction failed[/red]")
+        console.print("\n[red]✗ Extraction failed[/red]")
         if result.raw_response:
             console.print(f"[dim]{result.raw_response[:500]}[/dim]")
         return
