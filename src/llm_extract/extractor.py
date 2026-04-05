@@ -25,6 +25,7 @@ from llm_extract.models import DocumentChunk, ExtractionConfig, ExtractionResult
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
+
 def extract(
     source: str,
     schema: Type[BaseModel],
@@ -128,6 +129,7 @@ def extract_text(
 
 # ── Internal extraction ───────────────────────────────────────────────────────
 
+
 def _extract_single_chunk(
     chunk: DocumentChunk,
     schema: Type[BaseModel],
@@ -158,8 +160,10 @@ def _extract_multi_chunk(
 
     for chunk in chunks:
         prompt = _build_prompt(
-            chunk.text, schema, instructions,
-            context=f"[Chunk {chunk.chunk_index + 1} of {chunk.total_chunks}]"
+            chunk.text,
+            schema,
+            instructions,
+            context=f"[Chunk {chunk.chunk_index + 1} of {chunk.total_chunks}]",
         )
         raw = _call_llm(prompt, config)
         raw_responses.append(raw)
@@ -203,6 +207,7 @@ def _extract_multi_chunk(
 
 
 # ── Prompt building ───────────────────────────────────────────────────────────
+
 
 def _build_prompt(
     text: str,
@@ -263,6 +268,7 @@ def _describe_schema(schema: Type[BaseModel]) -> str:
 
 # ── LLM call ──────────────────────────────────────────────────────────────────
 
+
 def _call_llm(prompt: str, config: ExtractionConfig) -> str:
     """Call the configured LLM provider and return the raw text response."""
     if config.provider == "anthropic":
@@ -287,6 +293,7 @@ def _call_anthropic(prompt: str, config: ExtractionConfig) -> str:
 
 
 # ── Response parsing ──────────────────────────────────────────────────────────
+
 
 def _parse_response(
     raw: str,

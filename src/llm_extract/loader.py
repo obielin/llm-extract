@@ -40,23 +40,20 @@ def load_document(path: str | Path) -> str:
     suffix = path.suffix.lower()
 
     loaders = {
-        ".txt":  _load_text,
-        ".md":   _load_text,
-        ".rst":  _load_text,
-        ".csv":  _load_csv,
+        ".txt": _load_text,
+        ".md": _load_text,
+        ".rst": _load_text,
+        ".csv": _load_csv,
         ".json": _load_json,
         ".html": _load_html,
-        ".htm":  _load_html,
-        ".pdf":  _load_pdf,
+        ".htm": _load_html,
+        ".pdf": _load_pdf,
         ".docx": _load_docx,
     }
 
     if suffix not in loaders:
         supported = ", ".join(sorted(loaders.keys()))
-        raise ValueError(
-            f"Unsupported file format: '{suffix}'. "
-            f"Supported formats: {supported}"
-        )
+        raise ValueError(f"Unsupported file format: '{suffix}'. " f"Supported formats: {supported}")
 
     return loaders[suffix](path)
 
@@ -67,6 +64,7 @@ def load_text(text: str) -> str:
 
 
 # ── Format-specific loaders ───────────────────────────────────────────────────
+
 
 def _load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace").strip()
@@ -92,7 +90,7 @@ def _load_csv(path: Path) -> str:
     for row in rows[1:]:
         # Pad row if shorter than header
         padded = row + [""] * (len(header) - len(row))
-        lines.append("| " + " | ".join(padded[:len(header)]) + " |")
+        lines.append("| " + " | ".join(padded[: len(header)]) + " |")
 
     return "\n".join(lines)
 
@@ -128,7 +126,8 @@ def _load_html(path: Path) -> str:
     text = soup.get_text(separator="\n")
     # Collapse multiple blank lines
     import re
-    text = re.sub(r'\n{3,}', '\n\n', text)
+
+    text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
 
 
@@ -138,8 +137,7 @@ def _load_pdf(path: Path) -> str:
         import pdfplumber
     except ImportError:
         raise ImportError(
-            "PDF loading requires pdfplumber. "
-            "Install it with: pip install 'llm-extract[pdf]'"
+            "PDF loading requires pdfplumber. " "Install it with: pip install 'llm-extract[pdf]'"
         )
 
     pages = []
@@ -158,8 +156,7 @@ def _load_docx(path: Path) -> str:
         from docx import Document
     except ImportError:
         raise ImportError(
-            "DOCX loading requires python-docx. "
-            "Install it with: pip install 'llm-extract[docx]'"
+            "DOCX loading requires python-docx. " "Install it with: pip install 'llm-extract[docx]'"
         )
 
     doc = Document(path)
@@ -171,8 +168,14 @@ def detect_format(path: str | Path) -> str:
     """Return the format name for a given file path."""
     suffix = Path(path).suffix.lower()
     names = {
-        ".txt": "plain text", ".md": "markdown", ".rst": "reStructuredText",
-        ".csv": "CSV", ".json": "JSON", ".html": "HTML", ".htm": "HTML",
-        ".pdf": "PDF", ".docx": "Word document",
+        ".txt": "plain text",
+        ".md": "markdown",
+        ".rst": "reStructuredText",
+        ".csv": "CSV",
+        ".json": "JSON",
+        ".html": "HTML",
+        ".htm": "HTML",
+        ".pdf": "PDF",
+        ".docx": "Word document",
     }
     return names.get(suffix, f"unknown ({suffix})")

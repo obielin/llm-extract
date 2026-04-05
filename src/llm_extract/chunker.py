@@ -37,13 +37,15 @@ def chunk_text(
 
     # If text fits in one chunk, return it directly
     if len(text) <= chunk_size:
-        return [DocumentChunk(
-            text=text,
-            chunk_index=0,
-            total_chunks=1,
-            char_start=0,
-            char_end=len(text),
-        )]
+        return [
+            DocumentChunk(
+                text=text,
+                chunk_index=0,
+                total_chunks=1,
+                char_start=0,
+                char_end=len(text),
+            )
+        ]
 
     chunks = _split_into_chunks(text, chunk_size, overlap)
     total = len(chunks)
@@ -101,20 +103,20 @@ def _find_split_point(text: str, start: int, end: int) -> int:
     window = text[start:end]
 
     # Try paragraph break (double newline)
-    para_match = list(re.finditer(r'\n\n', window))
+    para_match = list(re.finditer(r"\n\n", window))
     if para_match:
         # Use the last paragraph break in the window
         last_match = para_match[-1]
         return start + last_match.end()
 
     # Try sentence end (. ! ? followed by space or newline)
-    sentence_match = list(re.finditer(r'[.!?]\s', window))
+    sentence_match = list(re.finditer(r"[.!?]\s", window))
     if sentence_match:
         last_match = sentence_match[-1]
         return start + last_match.end()
 
     # Try word boundary (space)
-    space_match = list(re.finditer(r'\s', window))
+    space_match = list(re.finditer(r"\s", window))
     if space_match:
         last_match = space_match[-1]
         return start + last_match.start()

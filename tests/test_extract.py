@@ -22,6 +22,7 @@ from llm_extract.models import ExtractionConfig, ExtractionResult
 
 # ── Test schemas ──────────────────────────────────────────────────────────────
 
+
 class PersonSchema(BaseModel):
     name: str
     age: int
@@ -43,6 +44,7 @@ class ContractSchema(BaseModel):
 
 
 # ── ExtractionResult tests ────────────────────────────────────────────────────
+
 
 class TestExtractionResult:
     def test_success_true_when_data_present(self):
@@ -68,7 +70,8 @@ class TestExtractionResult:
         result = ExtractionResult(
             data=person,
             confidence={"name": 0.9, "age": 0.8},
-            fields_found=2, fields_total=3,
+            fields_found=2,
+            fields_total=3,
         )
         assert result.mean_confidence == pytest.approx(0.85)
 
@@ -81,7 +84,8 @@ class TestExtractionResult:
         result = ExtractionResult(
             data=person,
             confidence={"name": 0.95, "age": 0.60, "email": 0.50},
-            fields_found=3, fields_total=3,
+            fields_found=3,
+            fields_total=3,
         )
         low = result.low_confidence_fields(threshold=0.7)
         assert "age" in low
@@ -97,6 +101,7 @@ class TestExtractionResult:
 
 
 # ── ExtractionConfig tests ────────────────────────────────────────────────────
+
 
 class TestExtractionConfig:
     def test_defaults(self):
@@ -115,6 +120,7 @@ class TestExtractionConfig:
 
 
 # ── Chunker tests ─────────────────────────────────────────────────────────────
+
 
 class TestChunkText:
     def test_short_text_returns_single_chunk(self):
@@ -161,10 +167,11 @@ class TestChunkText:
         text = "Hello world " * 100
         chunks = chunk_text(text, chunk_size=200, overlap=50)
         for i in range(len(chunks) - 1):
-            assert chunks[i].char_start <= chunks[i+1].char_start
+            assert chunks[i].char_start <= chunks[i + 1].char_start
 
 
 # ── Loader tests ──────────────────────────────────────────────────────────────
+
 
 class TestDocumentLoader:
     def test_load_txt_file(self, tmp_path):
@@ -212,6 +219,7 @@ class TestDocumentLoader:
 
 
 # ── Prompt building tests ─────────────────────────────────────────────────────
+
 
 class TestPromptBuilding:
     def test_prompt_contains_schema_fields(self):
@@ -263,6 +271,7 @@ class TestDescribeSchema:
 
 # ── Response parsing tests ────────────────────────────────────────────────────
 
+
 class TestParseResponse:
     def make_response(self, **kwargs) -> str:
         """Build a mock LLM response JSON."""
@@ -298,10 +307,12 @@ class TestParseResponse:
         assert "Alice Chen" in result.sources.get("name", "")
 
     def test_null_values_handled_gracefully(self):
-        raw = json.dumps({
-            "name": {"value": "Alice", "confidence": 0.9, "source": "Alice"},
-            "age": {"value": None, "confidence": 0.0, "source": ""},
-        })
+        raw = json.dumps(
+            {
+                "name": {"value": "Alice", "confidence": 0.9, "source": "Alice"},
+                "age": {"value": None, "confidence": 0.0, "source": ""},
+            }
+        )
         _parse_response(raw, PersonSchema)
         # May fail validation if age is required — that's correct behaviour
 
@@ -319,10 +330,12 @@ class TestParseResponse:
         assert result.data.name == "Alice"
 
     def test_confidence_clamped_to_range(self):
-        raw = json.dumps({
-            "name": {"value": "Bob", "confidence": 1.5, "source": ""},
-            "age": {"value": 30, "confidence": -0.2, "source": ""},
-        })
+        raw = json.dumps(
+            {
+                "name": {"value": "Bob", "confidence": 1.5, "source": ""},
+                "age": {"value": 30, "confidence": -0.2, "source": ""},
+            }
+        )
         result = _parse_response(raw, PersonSchema)
         if result.confidence:
             for v in result.confidence.values():

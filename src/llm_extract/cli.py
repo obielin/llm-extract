@@ -32,16 +32,33 @@ console = Console()
 
 @app.command()
 def extract_cmd(
-    source: str = typer.Argument(..., help="Path to document (PDF, DOCX, HTML, CSV, TXT, MD, JSON)"),
-    schema_file: Optional[Path] = typer.Option(None, "--schema", "-s", help="Python file containing a Pydantic schema class"),
-    fields: Optional[str] = typer.Option(None, "--fields", "-f", help="Comma-separated field names for quick extraction (no schema file needed)"),
+    source: str = typer.Argument(
+        ..., help="Path to document (PDF, DOCX, HTML, CSV, TXT, MD, JSON)"
+    ),
+    schema_file: Optional[Path] = typer.Option(
+        None, "--schema", "-s", help="Python file containing a Pydantic schema class"
+    ),
+    fields: Optional[str] = typer.Option(
+        None,
+        "--fields",
+        "-f",
+        help="Comma-separated field names for quick extraction (no schema file needed)",
+    ),
     out: Optional[Path] = typer.Option(None, "--out", "-o", help="Save result as JSON file"),
-    show_sources: bool = typer.Option(False, "--show-sources", help="Show source text snippets for each field"),
-    show_raw: bool = typer.Option(False, "--show-raw", help="Show raw LLM response (for debugging)"),
+    show_sources: bool = typer.Option(
+        False, "--show-sources", help="Show source text snippets for each field"
+    ),
+    show_raw: bool = typer.Option(
+        False, "--show-raw", help="Show raw LLM response (for debugging)"
+    ),
     model: str = typer.Option("claude-opus-4-5", "--model", "-m", help="Anthropic model to use"),
     chunk_size: int = typer.Option(8000, "--chunk-size", help="Max characters per chunk"),
-    confidence_threshold: float = typer.Option(0.0, "--min-confidence", help="Minimum confidence to include field"),
-    instructions: Optional[str] = typer.Option(None, "--instructions", "-i", help="Additional extraction instructions"),
+    confidence_threshold: float = typer.Option(
+        0.0, "--min-confidence", help="Minimum confidence to include field"
+    ),
+    instructions: Optional[str] = typer.Option(
+        None, "--instructions", "-i", help="Additional extraction instructions"
+    ),
 ) -> None:
     """Extract structured data from a document file."""
     from llm_extract.extractor import extract
@@ -50,13 +67,15 @@ def extract_cmd(
 
     console.print()
     fmt = detect_format(source)
-    console.print(Panel(
-        f"[bold]Document:[/bold] {source} ({fmt})\n"
-        f"[bold]Model:[/bold] {model}\n"
-        f"[dim]Extracting structured data...[/dim]",
-        title="🔍 llm-extract",
-        border_style="cyan",
-    ))
+    console.print(
+        Panel(
+            f"[bold]Document:[/bold] {source} ({fmt})\n"
+            f"[bold]Model:[/bold] {model}\n"
+            f"[dim]Extracting structured data...[/dim]",
+            title="🔍 llm-extract",
+            border_style="cyan",
+        )
+    )
 
     # Build schema
     schema_cls = _resolve_schema(schema_file, fields)
@@ -72,13 +91,17 @@ def extract_cmd(
 
     # Run extraction
     from rich.progress import Progress, SpinnerColumn, TextColumn
-    with Progress(SpinnerColumn(), TextColumn("{task.description}"), console=console, transient=True) as p:
+
+    with Progress(
+        SpinnerColumn(), TextColumn("{task.description}"), console=console, transient=True
+    ) as p:
         p.add_task("Extracting...", total=None)
         result = extract(source, schema=schema_cls, config=config, instructions=instructions)
 
     # Display result
-    _display_result(result, show_sources=show_sources, show_raw=show_raw,
-                    threshold=confidence_threshold)
+    _display_result(
+        result, show_sources=show_sources, show_raw=show_raw, threshold=confidence_threshold
+    )
 
     # Save if requested
     if out and result.success:
@@ -115,7 +138,9 @@ def list_formats() -> None:
 
 
 @app.command("schema")
-def show_schema(schema_file: Path = typer.Argument(..., help="Python file with Pydantic schema")) -> None:
+def show_schema(
+    schema_file: Path = typer.Argument(..., help="Python file with Pydantic schema")
+) -> None:
     """Inspect a schema file and show extraction fields."""
     schema_cls = _load_schema_from_file(schema_file)
     if schema_cls is None:
@@ -138,6 +163,7 @@ def show_schema(schema_file: Path = typer.Argument(..., help="Python file with P
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _resolve_schema(
     schema_file: Optional[Path],
@@ -173,6 +199,7 @@ def _load_schema_from_file(path: Path) -> type[BaseModel] | None:
 def _build_quick_schema(fields_str: str) -> type[BaseModel]:
     """Build a simple schema from a comma-separated field list."""
     from pydantic import create_model
+
     field_names = [f.strip() for f in fields_str.split(",") if f.strip()]
     field_definitions = {name: (Optional[str], None) for name in field_names}
     return create_model("QuickSchema", **field_definitions)
@@ -186,8 +213,10 @@ def _display_result(result, show_sources: bool, show_raw: bool, threshold: float
             console.print(f"[dim]{result.raw_response[:500]}[/dim]")
         return
 
-    console.print(f"\n[green]✓ Extracted {result.fields_found}/{result.fields_total} fields "
-                  f"(coverage: {result.coverage:.0%}, mean confidence: {result.mean_confidence:.2f})[/green]")
+    console.print(
+        f"\n[green]✓ Extracted {result.fields_found}/{result.fields_total} fields "
+        f"(coverage: {result.coverage:.0%}, mean confidence: {result.mean_confidence:.2f})[/green]"
+    )
 
     if result.chunks_used > 1:
         console.print(f"[dim]Processed {result.chunks_used} chunks[/dim]")
@@ -206,7 +235,9 @@ def _display_result(result, show_sources: bool, show_raw: bool, threshold: float
         if conf < threshold and value is not None:
             continue
         conf_color = "green" if conf >= 0.9 else "yellow" if conf >= 0.7 else "red"
-        conf_str = f"[{conf_color}]{conf:.2f}[/{conf_color}]" if value is not None else "[dim]—[/dim]"
+        conf_str = (
+            f"[{conf_color}]{conf:.2f}[/{conf_color}]" if value is not None else "[dim]—[/dim]"
+        )
         value_str = str(value) if value is not None else "[dim]not found[/dim]"
         if len(value_str) > 60:
             value_str = value_str[:57] + "..."
