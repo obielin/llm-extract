@@ -302,7 +302,7 @@ class TestParseResponse:
             "name": {"value": "Alice", "confidence": 0.9, "source": "Alice"},
             "age": {"value": None, "confidence": 0.0, "source": ""},
         })
-        result = _parse_response(raw, PersonSchema)
+        _parse_response(raw, PersonSchema)
         # May fail validation if age is required — that's correct behaviour
 
     def test_invalid_json_returns_failed_result(self):
