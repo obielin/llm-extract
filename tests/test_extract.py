@@ -7,10 +7,8 @@ from __future__ import annotations
 
 import json
 import sys
-import tempfile
 from pathlib import Path
 from typing import Optional
-from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import BaseModel
@@ -18,10 +16,9 @@ from pydantic import BaseModel
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from llm_extract.chunker import chunk_text
-from llm_extract.loader import load_document, _load_csv, _load_json
-from llm_extract.models import DocumentChunk, ExtractionConfig, ExtractionResult
 from llm_extract.extractor import _build_prompt, _describe_schema, _parse_response
-
+from llm_extract.loader import _load_csv, load_document
+from llm_extract.models import ExtractionConfig, ExtractionResult
 
 # ── Test schemas ──────────────────────────────────────────────────────────────
 
@@ -152,7 +149,10 @@ class TestChunkText:
             assert len(chunk.text) <= 1100  # Allow slight overshoot
 
     def test_prefers_paragraph_splits(self):
-        text = "First paragraph content here.\n\nSecond paragraph content.\n\nThird paragraph content."
+        text = (
+            "First paragraph content here.\n\n"
+            "Second paragraph content.\n\nThird paragraph content."
+        )
         chunks = chunk_text(text, chunk_size=40, overlap=5)
         # Should split at paragraph boundaries
         assert len(chunks) > 1
@@ -310,7 +310,10 @@ class TestParseResponse:
         assert not result.success
 
     def test_markdown_fences_stripped(self):
-        raw = '```json\n{"name": {"value": "Alice", "confidence": 0.9, "source": "Alice"}, "age": {"value": 28, "confidence": 0.85, "source": "28"}}\n```'
+        raw = (
+            '```json\n{"name": {"value": "Alice", "confidence": 0.9, "source": "Alice"},'
+            ' "age": {"value": 28, "confidence": 0.85, "source": "28"}}\n```'
+        )
         result = _parse_response(raw, PersonSchema)
         assert result.success
         assert result.data.name == "Alice"
